@@ -60,7 +60,6 @@ enum Role {
 
 enum Visibility {
   PRIVATE
-  UNLISTED
   PUBLIC
 }
 

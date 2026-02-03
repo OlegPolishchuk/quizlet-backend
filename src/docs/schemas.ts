@@ -2,6 +2,13 @@
  * @openapi
  * components:
  *   schemas:
+ *     CreateFolderBody:
+ *       type: object
+ *       required: [title]
+ *       properties:
+ *         title:
+ *           type: string
+ *           example: "Biology"
  *     Folder:
  *       type: object
  *       required: [id, ownerId, title, visibility, createdAt, updatedAt]

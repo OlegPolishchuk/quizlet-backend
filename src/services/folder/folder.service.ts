@@ -1,3 +1,4 @@
+import { Visibility } from '../../generated/prisma/enums.js';
 import { getPaginatedFields } from '../../helpers/getPaginatedFields.js';
 import { prisma } from '../db/prisma.js';
 
@@ -20,5 +21,26 @@ export const folderService = {
     ]);
 
     return { total, limit: safeLimit, page: safePage, items };
+  },
+
+  create: async ({
+    userId,
+    visibility,
+    title,
+    description,
+  }: {
+    title: string;
+    userId: string;
+    description?: string | undefined;
+    visibility: Visibility;
+  }) => {
+    return prisma.folder.create({
+      data: {
+        title,
+        description: description ?? null,
+        visibility,
+        ownerId: userId,
+      },
+    });
   },
 };
