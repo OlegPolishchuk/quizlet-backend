@@ -80,7 +80,20 @@ authRouter.get('/sync', async (req: Request, res: Response) => {
     const user = await prisma.user.upsert({
       where: { id: userId },
       update: userData,
-      create: userData,
+      create: {
+        ...userData,
+        profile: {
+          create: {
+            locale: 'ru',
+            timezone: 'Europe/Minsk',
+            fullName:
+              [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(' ') ||
+              null,
+            avatarUrl: clerkUser.profile_image_url ?? null,
+          },
+        },
+      },
+      include: { profile: true },
     });
 
     res.json(user);
