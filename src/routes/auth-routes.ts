@@ -83,7 +83,7 @@ authRouter.get('/sync', async (req: Request, res: Response) => {
       create: userData,
     });
 
-    res.json({ user });
+    res.json(user);
   } catch (error) {
     console.error('Sync error:', error);
     res.status(500).json({ error: 'Sync failed' });

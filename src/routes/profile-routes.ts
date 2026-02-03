@@ -61,5 +61,5 @@ profileRouter.get('/me', async (req: Request, res: Response) => {
     where: { id: userId },
   });
 
-  return res.json({ user });
+  return res.json(user);
 });
