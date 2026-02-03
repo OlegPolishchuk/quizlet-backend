@@ -1,7 +1,7 @@
 import { getAuth } from '@clerk/express';
 import { type Request, type Response, Router } from 'express';
 
-import { prisma } from '../services/db/prisma.js';
+import { prisma } from '../../services/db/prisma.js';
 
 export const authRouter: Router = Router({});
 

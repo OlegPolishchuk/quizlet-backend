@@ -1,5 +1,10 @@
 import { Visibility } from '../../generated/prisma/enums.js';
 import { getPaginatedFields } from '../../helpers/getPaginatedFields.js';
+import { omitUndefined } from '../../helpers/omitUndefined.js';
+import {
+  UpdateFolderBodySchema,
+  updateFolderBodySchema,
+} from '../../routes/folder/schemas.js';
 import { prisma } from '../db/prisma.js';
 
 const DEFAULT_FOLDERS_LIMIT = 20;
@@ -42,5 +47,18 @@ export const folderService = {
         ownerId: userId,
       },
     });
+  },
+
+  edit: async (folderId: string, payload: UpdateFolderBodySchema, userId: string) => {
+    const data = omitUndefined(payload);
+
+    const result = await prisma.folder.updateMany({
+      where: { id: folderId, ownerId: userId },
+      data,
+    });
+
+    if (result.count === 0) throw new Error('Not found or forbidden');
+
+    return prisma.folder.findUnique({ where: { id: folderId } });
   },
 };

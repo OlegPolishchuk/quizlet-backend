@@ -5,9 +5,9 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 
 import 'dotenv/config';
-import { authRouter } from './routes/auth-routes.js';
-import { foldersRouter } from './routes/folders-routes.js';
-import { profileRouter } from './routes/profile-routes.js';
+import { authRouter } from './routes/auth/auth-routes.js';
+import { foldersRouter } from './routes/folder/folders-routes.js';
+import { profileRouter } from './routes/profile/profile-routes.js';
 import { swaggerSpec } from './swagger.js';
 
 const app: Application = express();

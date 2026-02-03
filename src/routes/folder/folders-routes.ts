@@ -2,15 +2,22 @@ import { getAuth } from '@clerk/express';
 import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
 
-import { unauthorizedException } from '../exceptions/exceptions.js';
-import { Folder } from '../generated/prisma/client.js';
-import { folderService } from '../services/folder/folder.service.js';
-import { ListResponse } from '../types.js';
+import { unauthorizedException } from '../../exceptions/exceptions.js';
+import { Folder } from '../../generated/prisma/client.js';
+import { folderService } from '../../services/folder/folder.service.js';
+import { ListResponse } from '../../types.js';
+
+import {
+  createFolderBodySchema,
+  folderIdParamsSchema,
+  updateFolderBodySchema,
+} from './schemas.js';
 
 export const foldersRouter: Router = Router({});
 
 const tempId = 'user_3976iOKNm1L8mCclYZ1knny7k5E';
-
+/****************************************/
+/* Get All Folders */
 /**
  * @openapi
  * /folders:
@@ -43,12 +50,7 @@ foldersRouter.get('', async (req: Request, res: Response) => {
 });
 
 /*****************************************/
-export const CreateFolderBody = z.object({
-  title: z.string().trim().min(1, 'title is required'),
-  description: z.string().trim().optional(),
-  visibility: z.enum(['PRIVATE', 'PUBLIC']).optional().default('PRIVATE'),
-});
-
+/* Create Folder */
 /**
  * @openapi
  * /folders:
@@ -87,7 +89,7 @@ foldersRouter.post('/', async (req: Request, res: Response) => {
     return unauthorizedException(res);
   }
 
-  const parsed = CreateFolderBody.safeParse(req.body);
+  const parsed = createFolderBodySchema.safeParse(req.body);
 
   if (!parsed.success) {
     const tree = z.treeifyError(parsed.error);
@@ -106,4 +108,33 @@ foldersRouter.post('/', async (req: Request, res: Response) => {
   const newFolder = await folderService.create({ ...data, userId });
 
   return res.status(201).json(newFolder);
+});
+
+/*************************************/
+/* Update Folder */
+foldersRouter.put('/:folderId', async (req: Request, res: Response) => {
+  const paramsResult = folderIdParamsSchema.safeParse(req.params);
+  if (!paramsResult.success) {
+    return res.status(400).json({ message: 'Invalid params' });
+  }
+
+  const bodyResult = updateFolderBodySchema.safeParse(req.body);
+  if (!bodyResult.success) {
+    return res.status(400).json({ message: 'Invalid body' });
+  }
+
+  const userId = (req as any).user?.id as string;
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const { folderId } = paramsResult.data;
+  const updatePayload = bodyResult.data;
+
+  if (Object.keys(updatePayload).length === 0) {
+    return res.status(400).json({ message: 'No fields to update' });
+  }
+
+  const updatedFolder = await folderService.edit(folderId, updatePayload, userId);
+  return res.json(updatedFolder);
 });
