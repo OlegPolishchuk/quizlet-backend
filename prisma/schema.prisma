@@ -22,7 +22,13 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Связи (будущие)
-  profile Profile?
+  profile          Profile?
+  StudySet         StudySet[]
+  Folder           Folder[]
+  StudySetInFolder StudySetInFolder[]
+  SetProgress      SetProgress[]
+  CardProgress     CardProgress[]
+  StudySession     StudySession[]
 
   @@map("users")
 }
@@ -45,7 +51,228 @@ model Profile {
   @@map("profiles")
 }
 
+// --- enums ---
+
 enum Role {
   USER
   ADMIN
+}
+
+enum Visibility {
+  PRIVATE
+  UNLISTED
+  PUBLIC
+}
+
+enum StudyMode {
+  FLASHCARDS
+  LEARN
+  TEST
+  MATCH
+  SPELL
+}
+
+enum CardMastery {
+  NOT_STUDIED
+  STILL_LEARNING
+  MASTERED
+}
+
+// --- core content ---
+model StudySet {
+  id          String     @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?
+  visibility  Visibility @default(PRIVATE)
+
+  // Для Spell/озвучки и просто корректного UI
+  termLang       String? // например "en"
+  definitionLang String? // например "ru"
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  cards StudyCard[]
+
+  // Организация
+  folders StudySetInFolder[]
+  tags    StudySetTag[]
+
+  // Прогресс
+  progress SetProgress[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  CardProgress CardProgress[]
+  StudySession StudySession[]
+
+  @@index([ownerId])
+  @@index([visibility])
+  @@map("study_sets")
+}
+
+model StudyCard {
+  id        String @id @default(cuid())
+  setId     String
+  sortOrder Int    @default(0)
+
+  term       String
+  definition String
+
+  // “звёздочка” можно хранить на уровне пользователя (см. StarredCard),
+  // но если хочешь “глобально” — оставь тут; для копии лучше user-level.
+  // starred Boolean @default(false)
+
+  set StudySet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  CardProgress CardProgress[]
+
+  @@index([setId, sortOrder])
+  @@map("study_cards")
+}
+
+// --- folders & tags ---
+
+model Folder {
+  id          String     @id @default(cuid())
+  ownerId     String
+  title       String
+  description String?
+  visibility  Visibility @default(PRIVATE)
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  sets StudySetInFolder[]
+  tags FolderTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@map("folders")
+}
+
+// M2M: наборы в папках
+model StudySetInFolder {
+  folderId  String
+  setId     String
+  addedById String?
+
+  folder  Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  set     StudySet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  addedBy User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@id([folderId, setId])
+  @@index([setId])
+  @@map("study_sets_in_folders")
+}
+
+// Tags в Quizlet работают как “субпапки/лейблы” для организации [web:16].
+// Я делаю теги в контексте папки, чтобы не было хаоса “глобальных” тегов.
+model FolderTag {
+  id       String @id @default(cuid())
+  folderId String
+  name     String
+
+  folder Folder        @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  sets   StudySetTag[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([folderId, name])
+  @@map("folder_tags")
+}
+
+// Привязка: (папка + тег) -> набор
+model StudySetTag {
+  tagId String
+  setId String
+
+  tag FolderTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  set StudySet  @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([tagId, setId])
+  @@index([setId])
+  @@map("study_set_tags")
+}
+
+// --- progress ---
+// Прогресс на уровне набора: сколько Not studied / Still learning / Mastered,
+// и возможность “учить только bucket” как в Progress-логике [web:33].
+model SetProgress {
+  id     String @id @default(cuid())
+  userId String
+  setId  String
+
+  // агрегаты (можно пересчитывать из CardProgress, но удобно хранить)
+  notStudiedCount    Int @default(0)
+  stillLearningCount Int @default(0)
+  masteredCount      Int @default(0)
+
+  lastStudiedAt DateTime?
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  set  StudySet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  cards CardProgress[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, setId])
+  @@index([setId])
+  @@map("set_progress")
+}
+
+model CardProgress {
+  id     String @id @default(cuid())
+  userId String
+  setId  String
+  cardId String
+
+  mastery        CardMastery @default(NOT_STUDIED)
+  correctStreak  Int         @default(0)
+  wrongCount     Int         @default(0)
+  lastAnsweredAt DateTime?
+
+  // “звёздочки” лучше держать на user-level
+  starred Boolean @default(false)
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  set           StudySet     @relation(fields: [setId], references: [id], onDelete: Cascade)
+  card          StudyCard    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  SetProgress   SetProgress? @relation(fields: [setProgressId], references: [id])
+  setProgressId String?
+
+  @@unique([userId, cardId])
+  @@index([userId, setId])
+  @@map("card_progress")
+}
+
+model StudySession {
+  id     String    @id @default(cuid())
+  userId String
+  setId  String
+  mode   StudyMode
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  // Метрики сессии
+  totalQuestions Int @default(0)
+  correctCount   Int @default(0)
+  wrongCount     Int @default(0)
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  set  StudySet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+  @@index([setId])
+  @@map("study_sessions")
 }

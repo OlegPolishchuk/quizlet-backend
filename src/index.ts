@@ -1,11 +1,12 @@
 import { clerkMiddleware, requireAuth } from '@clerk/express';
 import cors from 'cors';
-import type { Application, Request, Response } from 'express';
+import type { Application } from 'express';
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 
 import 'dotenv/config';
 import { authRouter } from './routes/auth-routes.js';
+import { foldersRouter } from './routes/folders-routes.js';
 import { profileRouter } from './routes/profile-routes.js';
 import { swaggerSpec } from './swagger.js';
 
@@ -22,7 +23,9 @@ app.use(clerkMiddleware());
 
 app.use('/auth', authRouter);
 app.use('/profile', requireAuth(), profileRouter);
+// app.use('/folder', requireAuth(), foldersRouter);
+app.use('/folders', foldersRouter);
 
 app.listen(PORT, () => {
-  console.log(`Server running ! at http://localhost:${PORT}`);
+  console.log(`Server running !! at http://localhost:${PORT}`);
 });
