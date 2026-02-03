@@ -1,11 +1,29 @@
-import { getAuth } from '@clerk/express';
 import { type Request, type Response, Router } from 'express';
 
-import { unauthorizedException } from '../exceptions/exceptions.js';
-import { prisma } from '../services/db/prisma.js';
+import { Folder } from '../generated/prisma/client.js';
 import { folderService } from '../services/folder/folder.service.js';
+import { ListResponse } from '../types.js';
 
 export const foldersRouter: Router = Router({});
+
+/**
+ * @openapi
+ * /folders:
+ *   get:
+ *     tags: [Folders]
+ *     summary: Получить список папок пользователя
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список папок
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ListResponseFolder'
+ *       401:
+ *         description: Unauthorized
+ */
 
 foldersRouter.get('', async (req: Request, res: Response) => {
   console.log('Folders REQUEST');
@@ -17,7 +35,7 @@ foldersRouter.get('', async (req: Request, res: Response) => {
 
   const tempId = 'user_3976iOKNm1L8mCclYZ1knny7k5E';
 
-  const folders = await folderService.getAll(tempId);
+  const folders: ListResponse<Folder> = await folderService.getAll(tempId);
 
   return res.json(folders);
 });

@@ -21,5 +21,6 @@ export const swaggerSpec = swaggerJSDoc({
   apis: [
     './src/routes/*.ts', // если в деве запускаешь ts
     './dist/routes/*.js', // если в проде запускаешь собранный js
+    'src/docs/**/*.ts',
   ],
 });
