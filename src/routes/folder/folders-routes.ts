@@ -141,6 +141,51 @@ foldersRouter.put('/:folderId', async (req: Request, res: Response) => {
 
 /************************************/
 /* Delete Folder */
+
+/**
+ * @openapi
+ * /folders/{folderId}:
+ *   delete:
+ *     tags:
+ *       - Folders
+ *     summary: Delete folder
+ *     description: Deletes a folder by id and returns the deleted folder.
+ *     parameters:
+ *       - in: path
+ *         name: folderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Folder id
+ *     responses:
+ *       200:
+ *         description: Deleted folder
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Folder'
+ *       400:
+ *         description: Invalid params (folderId)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               invalidFolderId:
+ *                 value:
+ *                   message: Invalid params (folderId)
+ *       404:
+ *         description: Folder not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               notFound:
+ *                 value:
+ *                   message: Folder not found
+ */
+
 const deleteFolderParams = z.string();
 
 foldersRouter.delete('/:folderId', async (req: Request, res: Response) => {
