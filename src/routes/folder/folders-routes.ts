@@ -182,6 +182,63 @@ foldersRouter.post('/', async (req: Request, res: Response) => {
 
 /*************************************/
 /* Update Folder */
+/**
+ * @openapi
+ * /folders/{folderId}:
+ *   put:
+ *     tags: [Folders]
+ *     summary: Update folder
+ *     description: Updates folder fields by id for the authorized user. At least one field must be provided.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: folderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Folder id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateFolderBody'
+ *     responses:
+ *       200:
+ *         description: Updated folder
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Folder'
+ *       400:
+ *         description: Bad request (invalid params/body or empty update payload)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               invalidParams:
+ *                 value:
+ *                   message: "Invalid params"
+ *               invalidBody:
+ *                 value:
+ *                   message: "Invalid body"
+ *               noFields:
+ *                 value:
+ *                   message: "No fields to update"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   message: "Unauthorized"
+ */
+
 foldersRouter.put('/:folderId', async (req: Request, res: Response) => {
   const paramsResult = folderIdParamsSchema.safeParse(req.params);
   if (!paramsResult.success) {
@@ -193,9 +250,10 @@ foldersRouter.put('/:folderId', async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Invalid body' });
   }
 
-  const userId = (req as any).user?.id as string;
+  const { userId } = getAuth(req);
+
   if (!userId) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return unauthorizedException(res);
   }
 
   const { folderId } = paramsResult.data;

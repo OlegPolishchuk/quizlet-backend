@@ -1,14 +1,8 @@
 /**
  * @openapi
  * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- *
  *   schemas:
- *     # ---------- Errors ----------
+ *     # ---------------- Errors ----------------
  *     ApiError:
  *       type: object
  *       additionalProperties: false
@@ -16,7 +10,7 @@
  *       properties:
  *         message:
  *           type: string
- *           example: "Not authenticated"
+ *           example: "Unauthorized"
  *
  *     ValidationError:
  *       type: object
@@ -25,18 +19,32 @@
  *       properties:
  *         message:
  *           type: string
- *           example: "Invalid title"
+ *           example: "Invalid input"
  *         errors:
  *           type: object
  *           additionalProperties: true
  *           example:
  *             form: ["Invalid input"]
- *             title: ["Required"]
+ *             field: ["Required"]
  *
  *     ValidationErrorResponse:
  *       $ref: '#/components/schemas/ValidationError'
  *
- *     # ---------- Common ----------
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: "Something went wrong"
+ *
+ *     ErrorNotFound:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *           example: "Resource not found"
+ *
+ *     # ---------------- Common ----------------
  *     Id:
  *       type: string
  *       example: "clx9o0c2f0000v8kz1p2a3b4c"
@@ -54,7 +62,7 @@
  *       type: string
  *       enum: [PRIVATE, PUBLIC]
  *
- *     # ---------- Prisma models (API responses) ----------
+ *     # ---------------- Users / Profile ----------------
  *     User:
  *       type: object
  *       additionalProperties: false
@@ -94,7 +102,7 @@
  *     Profile:
  *       type: object
  *       additionalProperties: false
- *       required: [id, userId, locale, timezone, createdAt, updatedAt]
+ *       required: [id, userId, createdAt, updatedAt]
  *       properties:
  *         id:
  *           $ref: '#/components/schemas/Id'
@@ -125,6 +133,10 @@
  *         updatedAt:
  *           $ref: '#/components/schemas/DateTime'
  *
+ *     ProfileMeResponse:
+ *       $ref: '#/components/schemas/User'
+ *
+ *     # ---------------- Folders ----------------
  *     Folder:
  *       type: object
  *       additionalProperties: false
@@ -161,14 +173,38 @@
  *         visibility:
  *           $ref: '#/components/schemas/Visibility'
  *
+ *     UpdateFolderBody:
+ *       type: object
+ *       additionalProperties: false
+ *       properties:
+ *         title:
+ *           type: string
+ *           minLength: 1
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         visibility:
+ *           $ref: '#/components/schemas/Visibility'
+ *       example:
+ *         title: "New Title"
+ *         description: "Updated description"
+ *         visibility: "PRIVATE"
+ *
+ *     # ---------------- Pagination ----------------
  *     PaginationMeta:
  *       type: object
  *       additionalProperties: false
  *       required: [total, limit, page]
  *       properties:
- *         total: { type: integer, example: 42 }
- *         limit: { type: integer, example: 20 }
- *         page: { type: integer, example: 1 }
+ *         total:
+ *           type: integer
+ *           example: 42
+ *         limit:
+ *           type: integer
+ *           example: 20
+ *         page:
+ *           type: integer
+ *           example: 1
  *
  *     ListResponseFolder:
  *       allOf:
@@ -181,9 +217,5 @@
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Folder'
- *
- *     # ---------- Responses ----------
- *     ProfileMeResponse:
- *       $ref: '#/components/schemas/User'
  */
 export {};
