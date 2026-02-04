@@ -61,4 +61,10 @@ export const folderService = {
 
     return prisma.folder.findUnique({ where: { id: folderId } });
   },
+
+  delete: (folderId: string) => {
+    return prisma.folder.delete({
+      where: { id: folderId },
+    });
+  },
 };

@@ -3,7 +3,7 @@ import { type Request, type Response, Router } from 'express';
 import { z } from 'zod';
 
 import { unauthorizedException } from '../../exceptions/exceptions.js';
-import { Folder } from '../../generated/prisma/client.js';
+import { Folder, Prisma } from '../../generated/prisma/client.js';
 import { folderService } from '../../services/folder/folder.service.js';
 import { ListResponse } from '../../types.js';
 
@@ -137,4 +137,28 @@ foldersRouter.put('/:folderId', async (req: Request, res: Response) => {
 
   const updatedFolder = await folderService.edit(folderId, updatePayload, userId);
   return res.json(updatedFolder);
+});
+
+/************************************/
+/* Delete Folder */
+const deleteFolderParams = z.string();
+
+foldersRouter.delete('/:folderId', async (req: Request, res: Response) => {
+  const folderIdParam = req.params.folderId;
+  const safeParams = deleteFolderParams.safeParse(folderIdParam);
+
+  if (!safeParams.success) {
+    return res.status(400).json({ message: 'Invalid params (folderId)' });
+  }
+
+  try {
+    const folderId = safeParams.data;
+    const deletedFolder = await folderService.delete(folderId);
+    return res.json(deletedFolder);
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+      return res.status(404).json({ message: 'Folder not found' });
+    }
+    throw e;
+  }
 });
