@@ -1,67 +1,189 @@
 /**
  * @openapi
  * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *
  *   schemas:
+ *     # ---------- Errors ----------
+ *     ApiError:
+ *       type: object
+ *       additionalProperties: false
+ *       required: [message]
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: "Not authenticated"
+ *
+ *     ValidationError:
+ *       type: object
+ *       additionalProperties: false
+ *       required: [message, errors]
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: "Invalid title"
+ *         errors:
+ *           type: object
+ *           additionalProperties: true
+ *           example:
+ *             form: ["Invalid input"]
+ *             title: ["Required"]
+ *
+ *     ValidationErrorResponse:
+ *       $ref: '#/components/schemas/ValidationError'
+ *
+ *     # ---------- Common ----------
+ *     Id:
+ *       type: string
+ *       example: "clx9o0c2f0000v8kz1p2a3b4c"
+ *
+ *     DateTime:
+ *       type: string
+ *       format: date-time
+ *       example: "2026-02-04T07:41:00.000Z"
+ *
+ *     Role:
+ *       type: string
+ *       enum: [USER, ADMIN]
+ *
+ *     Visibility:
+ *       type: string
+ *       enum: [PRIVATE, PUBLIC]
+ *
+ *     # ---------- Prisma models (API responses) ----------
+ *     User:
+ *       type: object
+ *       additionalProperties: false
+ *       required: [id, email, role, createdAt, updatedAt]
+ *       properties:
+ *         id:
+ *           $ref: '#/components/schemas/Id'
+ *         email:
+ *           type: string
+ *           example: "user@example.com"
+ *         emailVerified:
+ *           $ref: '#/components/schemas/DateTime'
+ *           nullable: true
+ *         username:
+ *           type: string
+ *           nullable: true
+ *           example: "cool_user"
+ *         firstName:
+ *           type: string
+ *           nullable: true
+ *           example: "Ivan"
+ *         lastName:
+ *           type: string
+ *           nullable: true
+ *           example: "Ivanov"
+ *         imageUrl:
+ *           type: string
+ *           nullable: true
+ *           example: "https://example.com/avatar.png"
+ *         role:
+ *           $ref: '#/components/schemas/Role'
+ *         createdAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *         updatedAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *
+ *     Profile:
+ *       type: object
+ *       additionalProperties: false
+ *       required: [id, userId, locale, timezone, createdAt, updatedAt]
+ *       properties:
+ *         id:
+ *           $ref: '#/components/schemas/Id'
+ *         userId:
+ *           $ref: '#/components/schemas/Id'
+ *         fullName:
+ *           type: string
+ *           nullable: true
+ *           example: "Ivan Ivanov"
+ *         avatarUrl:
+ *           type: string
+ *           nullable: true
+ *           example: "https://example.com/avatar.png"
+ *         bio:
+ *           type: string
+ *           nullable: true
+ *           example: "I love biology"
+ *         locale:
+ *           type: string
+ *           nullable: true
+ *           example: "ru"
+ *         timezone:
+ *           type: string
+ *           nullable: true
+ *           example: "Europe/Minsk"
+ *         createdAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *         updatedAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *
+ *     Folder:
+ *       type: object
+ *       additionalProperties: false
+ *       required: [id, ownerId, title, visibility, createdAt, updatedAt]
+ *       properties:
+ *         id:
+ *           $ref: '#/components/schemas/Id'
+ *         ownerId:
+ *           $ref: '#/components/schemas/Id'
+ *         title:
+ *           type: string
+ *           example: "Biology"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         visibility:
+ *           $ref: '#/components/schemas/Visibility'
+ *         createdAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *         updatedAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *
  *     CreateFolderBody:
  *       type: object
+ *       additionalProperties: false
  *       required: [title]
  *       properties:
  *         title:
  *           type: string
  *           example: "Biology"
- *     Folder:
- *       type: object
- *       required: [id, ownerId, title, visibility, createdAt, updatedAt]
- *       properties:
- *         id: { type: string }
- *         ownerId: { type: string }
- *         title: { type: string }
- *         description: { type: string, nullable: true }
- *         visibility: { type: string, example: "PRIVATE" }
- *         createdAt: { type: string, format: date-time }
- *         updatedAt: { type: string, format: date-time }
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         visibility:
+ *           $ref: '#/components/schemas/Visibility'
  *
- *     ListResponseFolder:
+ *     PaginationMeta:
  *       type: object
- *       required: [total, limit, page, items]
+ *       additionalProperties: false
+ *       required: [total, limit, page]
  *       properties:
  *         total: { type: integer, example: 42 }
  *         limit: { type: integer, example: 20 }
  *         page: { type: integer, example: 1 }
- *         items:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Folder'
  *
- *     Profile:
- *       type: object
- *       required: [id, userId, createdAt, updatedAt]
- *       properties:
- *         id: { type: string }
- *         userId: { type: string }
- *         fullName: { type: string, nullable: true }
- *         avatarUrl: { type: string, nullable: true }
- *         bio: { type: string, nullable: true }
- *         locale: { type: string, nullable: true, example: "ru" }
- *         timezone: { type: string, nullable: true, example: "Europe/Minsk" }
- *         createdAt: { type: string, format: date-time }
- *         updatedAt: { type: string, format: date-time }
+ *     ListResponseFolder:
+ *       allOf:
+ *         - $ref: '#/components/schemas/PaginationMeta'
+ *         - type: object
+ *           additionalProperties: false
+ *           required: [items]
+ *           properties:
+ *             items:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Folder'
  *
- *     ClerkUser:
- *       type: object
- *       properties:
- *         id: { type: string }
- *         email: { type: string, nullable: true }
- *         firstName: { type: string, nullable: true }
- *         lastName: { type: string, nullable: true }
- *         imageUrl: { type: string, nullable: true }
- *         emailVerified: { type: string, format: date-time, nullable: true }
- *
+ *     # ---------- Responses ----------
  *     ProfileMeResponse:
- *       type: object
- *       properties:
- *         user:
- *           $ref: '#/components/schemas/ClerkUser'
- *           nullable: true
+ *       $ref: '#/components/schemas/User'
  */
 export {};

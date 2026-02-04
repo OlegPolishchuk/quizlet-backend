@@ -21,8 +21,29 @@ export const profileRouter: Router = Router({});
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ProfileMeResponse'
+ *             examples:
+ *               user:
+ *                 value:
+ *                   id: "clx9o0c2f0000v8kz1p2a3b4c"
+ *                   email: "user@example.com"
+ *                   emailVerified: null
+ *                   username: null
+ *                   firstName: null
+ *                   lastName: null
+ *                   imageUrl: null
+ *                   role: "USER"
+ *                   createdAt: "2026-02-04T07:41:00.000Z"
+ *                   updatedAt: "2026-02-04T07:41:00.000Z"
  *       401:
  *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               notAuthenticated:
+ *                 value:
+ *                   message: Not authenticated
  */
 
 profileRouter.get('/me', async (req: Request, res: Response) => {

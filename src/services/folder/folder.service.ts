@@ -28,6 +28,12 @@ export const folderService = {
     return { total, limit: safeLimit, page: safePage, items };
   },
 
+  getCurrent: (folderId: string, userId: string) => {
+    return prisma.folder.findUnique({
+      where: { id: folderId, ownerId: userId },
+    });
+  },
+
   create: async ({
     userId,
     visibility,

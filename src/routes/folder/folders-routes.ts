@@ -49,6 +49,72 @@ foldersRouter.get('', async (req: Request, res: Response) => {
   return res.json(folders);
 });
 
+/***************************************/
+/* Get Current Folder */
+
+/**
+ * @openapi
+ * /folders/{folderId}:
+ *   get:
+ *     tags:
+ *       - Folders
+ *     summary: Get current folder
+ *     description: Returns a folder by id for the authorized user.
+ *     parameters:
+ *       - in: path
+ *         name: folderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Folder id
+ *     responses:
+ *       200:
+ *         description: Folder
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Folder'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Folder not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/ErrorResponse'
+ *                 - $ref: '#/components/schemas/ErrorNotFound'
+ *             examples:
+ *               notFound:
+ *                 value:
+ *                   error: Folder not found
+ */
+
+const getFolderSchema = z.string();
+
+foldersRouter.get('/:folderId', async (req: Request, res: Response) => {
+  const { userId } = getAuth(req);
+
+  if (!userId) {
+    return unauthorizedException(res);
+  }
+
+  const parsedParam = getFolderSchema.safeParse(req.params.folderId);
+
+  if (!parsedParam.success) {
+    return res.status(404).json({ error: 'Folder not found' });
+  }
+
+  const folderId = parsedParam.data;
+  const folder = await folderService.getCurrent(folderId, userId);
+
+  return res.json(folder);
+});
+
 /*****************************************/
 /* Create Folder */
 /**
@@ -80,6 +146,10 @@ foldersRouter.get('', async (req: Request, res: Response) => {
  *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  */
 
 foldersRouter.post('/', async (req: Request, res: Response) => {
