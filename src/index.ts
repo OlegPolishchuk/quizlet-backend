@@ -7,7 +7,9 @@ import swaggerUi from 'swagger-ui-express';
 import 'dotenv/config';
 import { authRouter } from './routes/auth/auth-routes.js';
 import { foldersRouter } from './routes/folder/folders-routes.js';
+import { moduleRouter } from './routes/modules/modules-routes.js';
 import { profileRouter } from './routes/profile/profile-routes.js';
+import { termRouter } from './routes/term/term-routes.js';
 import { swaggerSpec } from './swagger.js';
 
 const app: Application = express();
@@ -23,8 +25,9 @@ app.use(clerkMiddleware());
 
 app.use('/auth', authRouter);
 app.use('/profile', requireAuth(), profileRouter);
-// app.use('/folder', requireAuth(), foldersRouter);
-app.use('/folders', foldersRouter);
+app.use('/folder', requireAuth(), foldersRouter);
+app.use('/terms', termRouter);
+app.use('/modules', requireAuth(), moduleRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running !! at http://localhost:${PORT}`);

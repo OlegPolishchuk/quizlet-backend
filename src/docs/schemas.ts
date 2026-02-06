@@ -217,5 +217,183 @@
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Folder'
+ *
+ *     # ---------------- Terms / Dictionary ----------------
+ *     Word:
+ *       type: object
+ *       properties:
+ *         word:
+ *           type: string
+ *           example: "hello"
+ *         phonetics:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 example: "/həˈləʊ/"
+ *               audio:
+ *                 type: string
+ *                 example: "https://api.dictionaryapi.dev/media/pronunciations/en/hello-au.mp3"
+ *         meanings:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               partOfSpeech:
+ *                 type: string
+ *                 example: "noun"
+ *               definitions:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     definition:
+ *                       type: string
+ *                       example: "A greeting (salutation) said when meeting someone."
+ *                     example:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "Hello, everyone."
+ *                     synonyms:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["greeting", "welcome"]
+ *                     antonyms:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["goodbye"]
+ *
+ *     # ---------------- Modules (Study Sets) ----------------
+ *
+ *     ModuleCard:
+ *       type: object
+ *       properties:
+ *         id:
+ *           $ref: '#/components/schemas/Id'
+ *         term:
+ *           type: string
+ *           example: "Apple"
+ *         definition:
+ *           type: string
+ *           example: "A fruit"
+ *         imageUrl:
+ *           type: string
+ *           nullable: true
+ *         sortOrder:
+ *           type: integer
+ *           example: 0
+ *
+ *     Module:
+ *       type: object
+ *       properties:
+ *         id:
+ *           $ref: '#/components/schemas/Id'
+ *         ownerId:
+ *           $ref: '#/components/schemas/Id'
+ *         title:
+ *           type: string
+ *           example: "English Basics"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           example: "Basic vocabulary"
+ *         visibility:
+ *           $ref: '#/components/schemas/Visibility'
+ *         termLang:
+ *           type: string
+ *           example: "en"
+ *         definitionLang:
+ *           type: string
+ *           example: "ru"
+ *         cards:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ModuleCard'
+ *         createdAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *         updatedAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *
+ *     ModuleListItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           $ref: '#/components/schemas/Id'
+ *         ownerId:
+ *           $ref: '#/components/schemas/Id'
+ *         title:
+ *           type: string
+ *           example: "English Basics"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         visibility:
+ *           $ref: '#/components/schemas/Visibility'
+ *         termLang:
+ *           type: string
+ *           example: "en"
+ *         definitionLang:
+ *           type: string
+ *           example: "ru"
+ *         cardsCount:
+ *           type: integer
+ *           description: "Количество карточек в модуле"
+ *           example: 15
+ *         createdAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *         updatedAt:
+ *           $ref: '#/components/schemas/DateTime'
+ *
+ *     CreateModuleBody:
+ *       type: object
+ *       required: [title, cards]
+ *       properties:
+ *         title:
+ *           type: string
+ *           minLength: 1
+ *           example: "English Basics"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         visibility:
+ *           $ref: '#/components/schemas/Visibility'
+ *         termLang:
+ *           type: string
+ *           default: "en"
+ *         definitionLang:
+ *           type: string
+ *           default: "ru"
+ *         cards:
+ *           type: array
+ *           minItems: 2
+ *           items:
+ *             type: object
+ *             required: [term, definition]
+ *             properties:
+ *               term:
+ *                 type: string
+ *                 example: "Cat"
+ *               definition:
+ *                 type: string
+ *                 example: "Кошка"
+ *               imageUrl:
+ *                 type: string
+ *                 nullable: true
+ *
+ *     ListResponseModule:
+ *       allOf:
+ *         - $ref: '#/components/schemas/PaginationMeta'
+ *         - type: object
+ *           additionalProperties: false
+ *           required: [items]
+ *           properties:
+ *             items:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ModuleListItem'
  */
 export {};
